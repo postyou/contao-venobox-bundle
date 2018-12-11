@@ -1,0 +1,12 @@
+.ce_venoBox_field_wrapper th,.ce_venoBox_field_wrapper td {padding: 5px;border-collapse: collapse;}
+.ce_venoBox_field_wrapper {
+    background-color: #F5F5F5;
+    padding: 1em;
+    display: inline-block;
+}
+.ce_venoBox_field_wrapper .styled_select,.ce_venoBox_field_wrapper .mySelect{
+    width: 206px;
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+    appearance: menulist;}
+.ce_venoBox_field_wrapper input{width: 200px;}

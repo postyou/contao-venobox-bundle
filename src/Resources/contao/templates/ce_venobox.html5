@@ -1,0 +1,17 @@
+
+
+
+<?php $this->extend('block_searchable'); ?>
+<?php $this->block('content'); ?>
+<?php if(isset($this->js)){echo($this->js);} ?>
+
+<?php
+echo 'test';
+    echo($this->html);
+?>
+
+<?php $this->endblock(); ?>
+
+
+
+
