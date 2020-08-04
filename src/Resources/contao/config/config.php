@@ -1,6 +1,5 @@
 <?php
 
-if (!defined('TL_ROOT')) die('You cannot access this file directly!');
 $GLOBALS['TL_CTE']['media']['VenoBox'] = 'Postyou\ContaoVenoboxBundle\VenoBox';
 
 $GLOBALS['BE_FFL']['venoBoxWizard'] = 'Postyou\ContaoVenoboxBundle\VenoBoxWizard';
@@ -24,4 +23,3 @@ $GLOBALS['TL_CONFIG']['VenoBoxWizard']['fields']=array(
 
 $GLOBALS['TL_HOOKS']['getContentElement'][] = array('Postyou\ContaoVenoboxBundle\VenoElement', 'renderCeText');
 $GLOBALS['TL_CTE']['media']['image'] = 'Postyou\ContaoVenoboxBundle\ContentVenoLinkImage';
-?>

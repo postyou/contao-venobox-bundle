@@ -10,11 +10,6 @@
  * @link    http://www.postyou.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
-
-if (!defined('TL_ROOT')) {
-    die('You cannot access this file directly!');
-}
-
 if (TL_MODE == 'BE') {
 
     $GLOBALS['TL_CSS'][] = 'bundles/postyoucontaovenobox/css/backend.css';
@@ -26,9 +21,7 @@ if (TL_MODE == 'BE') {
     $GLOBALS['TL_CSS'][]        =
 
         'assets/colorpicker/css/mooRainbow.css';
-
 }
-
 
 $GLOBALS['TL_DCA']['tl_content']['palettes']['VenoBox'] =
     '{type_legend},type,headline,headlineOptn;'.
@@ -83,6 +76,7 @@ $GLOBALS['TL_DCA']['tl_content']['fields']['venoList'] = array
                 );
             }
         }
+
         return serialize($vallArr);
     }),
 );
@@ -95,7 +89,7 @@ $GLOBALS['TL_DCA']['tl_content']['fields']['fullsize']['eval'] = array('submitOn
 
 
 $GLOBALS['TL_DCA']['tl_content']['palettes']['image']=
-    str_replace(',imageUrl,fullsize', '', $GLOBALS['TL_DCA']['tl_content']['palettes']['image']);
+    str_replace(',fullsize', '', $GLOBALS['TL_DCA']['tl_content']['palettes']['image']);
 $GLOBALS['TL_DCA']['tl_content']['palettes']['image']=
     str_replace('{template_legend', '{veno_legend},fullsize;{template_legend', $GLOBALS['TL_DCA']['tl_content']['palettes']['image']);
 

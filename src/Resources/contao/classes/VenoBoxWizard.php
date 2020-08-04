@@ -12,7 +12,7 @@
  */
 namespace Postyou\ContaoVenoboxBundle;
 
-class VenoBoxWizard extends \Widget
+class VenoBoxWizard extends \Contao\Widget
 {
     /**
      * Submit user input
