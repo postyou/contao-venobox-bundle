@@ -15,6 +15,7 @@ namespace Postyou\ContaoVenoboxBundle;
 use Contao\Controller;
 use Contao\Environment;
 use Contao\Input;
+use Contao\FilesModel;
 use Postyou\ContaoPageToAjaxBundle\Pages\PageAjax;
 
 class VenoElement
@@ -73,12 +74,12 @@ class VenoElement
 
         if ($this->type == 0) {
             //big Image Path
-            $objFileBig = \FilesModel::findByPk($this->href);
+            $objFileBig = FilesModel::findByPk($this->href);
             if ($objFileBig !== null && is_file(TL_ROOT . '/' . $objFileBig->path)) {
                 $this->href=$objFileBig->path;
             }
             //Thumbnail path
-            $objFileSmall = \FilesModel::findByPk($this->text);
+            $objFileSmall = FilesModel::findByPk($this->text);
             if ($objFileSmall !== null && is_file(TL_ROOT . '/' . $objFileSmall->path)) {
                 $this->text="<img src='".$objFileSmall->path."'/>";
             }

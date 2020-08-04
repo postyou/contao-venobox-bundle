@@ -12,6 +12,12 @@
  */
 namespace Postyou\ContaoVenoboxBundle;
 
+use Contao\Input;
+use Contao\Environment;
+use Contao\Cache;
+use Contao\Image;
+use Contao\Backend;
+
 class VenoBoxWizard extends \Contao\Widget
 {
     /**
@@ -74,23 +80,23 @@ class VenoBoxWizard extends \Contao\Widget
         $strCommand = 'cmd_' . $this->strField;
 
         // Change the order
-        if (\Input::get($strCommand) && is_numeric(\Input::get('cid')) && \Input::get('id') == $this->currentRecord) {
+        if (Input::get($strCommand) && is_numeric(Input::get('cid')) && Input::get('id') == $this->currentRecord) {
             $this->import('Database');
-            switch (\Input::get($strCommand)) {
+            switch (Input::get($strCommand)) {
                 case 'copy':
-                    $this->varValue = $this->duplicate($this->varValue, \Input::get('cid'));
+                    $this->varValue = $this->duplicate($this->varValue, Input::get('cid'));
                     break;
                 case 'up':
-                    $this->varValue = array_move_up($this->varValue, \Input::get('cid'));
+                    $this->varValue = array_move_up($this->varValue, Input::get('cid'));
                     break;
                 case 'down':
-                    $this->varValue = array_move_down($this->varValue, \Input::get('cid'));
+                    $this->varValue = array_move_down($this->varValue, Input::get('cid'));
                     break;
                 case 'delete':
-                    $this->varValue = array_delete($this->varValue, \Input::get('cid'));
+                    $this->varValue = array_delete($this->varValue, Input::get('cid'));
                     break;
             }
-            if (\Input::post('FORM_SUBMIT') == $this->strTable) {
+            if (Input::post('FORM_SUBMIT') == $this->strTable) {
                 error_log(
                     preg_replace(
                         '/&(amp;)?cid=[^&]*/i',
@@ -98,7 +104,7 @@ class VenoBoxWizard extends \Contao\Widget
                         preg_replace(
                             '/&(amp;)?' . preg_quote($strCommand, '/') . '=[^&]*/i',
                             '',
-                            \Environment::get('request')
+                            Environment::get('request')
                         )
                     )
                 );
@@ -109,7 +115,7 @@ class VenoBoxWizard extends \Contao\Widget
                         preg_replace(
                             '/&(amp;)?' . preg_quote($strCommand, '/') . '=[^&]*/i',
                             '',
-                            \Environment::get('request')
+                            Environment::get('request')
                         )
                     )
                 );
@@ -125,11 +131,11 @@ class VenoBoxWizard extends \Contao\Widget
             $this->varValue =array($initArray);
         }
         // Initialize the tab index
-        if (!\Cache::has('tabindex')) {
-            \Cache::set('tabindex', 1);
+        if (!Cache::has('tabindex')) {
+            Cache::set('tabindex', 1);
         }
 
-        $tabindex = \Cache::get('tabindex');
+        $tabindex = Cache::get('tabindex');
 
         $return = "<div class='ce_venoBoxWizard_wrapper'>";
         $return .= '<ul id="ctrl_' . $this->strId . '" class="ce_venoBoxWizard" data-tabindex="' . $tabindex . '">';
@@ -160,7 +166,7 @@ class VenoBoxWizard extends \Contao\Widget
             foreach ($arrButtons as $button) {
 //                $class = ($button == 'up' || $button == 'down') ? ' class="button-move"' : '';
                 if ($button == 'drag') {
-                    $return .= \Image::getHtml(
+                    $return .= Image::getHtml(
                         'drag.gif',
                         '',
                         'class="drag-handle" title="' .
@@ -168,7 +174,7 @@ class VenoBoxWizard extends \Contao\Widget
                     );
                     $return .="\n\n";
                 } else {
-                    $return .= \Image::getHtml(
+                    $return .= Image::getHtml(
                         $button . '.gif',
                         $GLOBALS['TL_LANG']['MSC']['lw_' . $button],
                         'class="tl_listwizard_img" onclick="myListWizard(this,\'' .
@@ -180,7 +186,7 @@ class VenoBoxWizard extends \Contao\Widget
             $tabindex++;
         }
 // Store the tab index
-        \Cache::set('tabindex', $tabindex);
+        Cache::set('tabindex', $tabindex);
         $return .= "</ul>\n</div>\n";
 
         return $return ;
@@ -278,7 +284,7 @@ class VenoBoxWizard extends \Contao\Widget
         $label="PageTree";
         $name=$this->strId . '[' . $key . '][' . $i . ']';
 
-        return \Backend::getDcaPickerWizard(array('fieldType' => 'radio'),\Input::get('table'), '', 'venoList[0][1]');
+        return Backend::getDcaPickerWizard(array('fieldType' => 'radio'),Input::get('table'), '', 'venoList[0][1]');
 
         //picker?context=link&extras[fieldType]=radio&extras[filesOnly]=true&extras[source]=tl_news.20&value=&popup=1
 //        return ' <a href="contao/picker?context=link&amp;extras[source]=' . \Input::get('table') . '&amp;extras[fieldType]=radio&amp;extras[filesOnly]=true&amp;value=" title="' . specialchars($GLOBALS['TL_LANG']['MSC']['pagepicker']) . '"
@@ -295,14 +301,14 @@ class VenoBoxWizard extends \Contao\Widget
 //            'filesOnly'=>true, 'extensions'=>\Config::get('validImageTypes'), 'fieldType'=>'radio', 'tl_class'=>'w50 wizard'
 //        );
 
-        return ' <a href="contao/file.php?do='.\Input::get('do').
-               '&amp;table='.\Input::get('table').
+        return ' <a href="contao/file.php?do='.Input::get('do').
+               '&amp;table='.Input::get('table').
                '&amp;field='.$name.'&amp;filter=jpg&amp;value="
          title="'.specialchars(str_replace("'", "\\'", $GLOBALS['TL_LANG']['MSC']['filepicker'])).'"
           onclick="Backend.getScrollOffset();Backend.openModalSelector({\'width\':768,\'title\':\''
                .specialchars($GLOBALS['TL_LANG']['MOD']['files'][0]).'\',\'url\':this.href,\'id\':\''
                .$name.'\',\'tag\':\'ctrl_'.$name.'\',\'self\':this});return false">' .
-        \Image::getHtml(
+        Image::getHtml(
             'pickfile.gif',
             $GLOBALS['TL_LANG']['MSC']['filepicker'],
             'style="vertical-align:top;cursor:pointer"'

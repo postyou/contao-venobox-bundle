@@ -15,7 +15,6 @@ namespace Postyou\ContaoVenoboxBundle;
 
 
 use Contao\ContentImage;
-use Contao\Input;
 
 class ContentVenoLinkImage extends ContentImage
 {
