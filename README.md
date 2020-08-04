@@ -1,1 +1,1 @@
-# contao-venobox-bundle
+# contao-venobox-bundle - Deprecated
