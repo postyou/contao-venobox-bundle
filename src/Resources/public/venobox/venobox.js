@@ -425,10 +425,10 @@
 
                     // swipe out item
                     if (destination === theprev) {
-                      content.addClass('animated').addClass('swipe-right');
+                      content.addClass('animated');
                     }
                     if (destination === thenext) {
-                      content.addClass('animated').addClass('swipe-left');
+                      content.addClass('animated');
                     }
 
                     $preloader.show();
@@ -441,8 +441,6 @@
 
                       content
                       .removeClass('animated')
-                      .removeClass('swipe-left')
-                      .removeClass('swipe-right')
                       .css({'margin-left': 0,'margin-right': 0});
 
                       if (destination.data('vbtype') == 'iframe') {
