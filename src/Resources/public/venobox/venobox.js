@@ -484,7 +484,7 @@
                         if(count==len)
                             updateoverlay(true);
                     }).each(function() {
-                        if(this.complete) $(this).load();
+                        // if(this.complete) $(this).load();
                     });
                 });
             else
@@ -534,7 +534,7 @@
         prima.one('load', function() {
             updateoverlay();
         }).each(function() {
-            if(this.complete) $(this).load();
+            // if(this.complete) $(this).load();
         });
     }
 
