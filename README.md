@@ -1,29 +1,6 @@
 contao-venobox [Deprecated]
 =====================
 Venobox Gallerie Erweiterung für Contao
-
-usage:
-
-"require": {
-
-        "postyou/venobox": "dev-master"
-},
-
-
-"repositories": [
-
-        {
-        
-            "type": "vcs",
-            "url": "https://github.com/postyou/contao-venobox"
-        },
-        {
-        
-            "type": "vcs",
-            "url": "https://github.com/postyou/VenoBox"
-        }
-        
-],
    
 Usage with page2ajax: (display contentElements, Articles or Pages in a VenoBox but not as an IFrame)
 
