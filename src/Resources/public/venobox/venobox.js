@@ -400,7 +400,7 @@
 
                         $('body').off('keydown', escapeHandler);
 
-                        if (ie9) {
+                        if (true) {
 
                             overlay.animate({opacity:0}, 500, function(){
                                 overlay.remove();
@@ -469,7 +469,6 @@
 
     /* -------- LOAD AJAX -------- */
     function loadAjax(){
-        console.log('ajax');
         $.ajax({
             url: dest,
             cache: false
