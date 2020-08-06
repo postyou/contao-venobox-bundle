@@ -1,800 +1,600 @@
 /*
  * VenoBox - jQuery Plugin
- * version: 1.8.5
- * @requires jQuery >= 1.7.0
+ * version: 1.5.3
+ * @requires jQuery
  *
- * Examples at http://veno.es/venobox/
+ * Examples at http://lab.veno.it/venobox/
  * License: MIT License
  * License URI: https://github.com/nicolafranchini/VenoBox/blob/master/LICENSE
- * Copyright 2013-2017 Nicola Franchini - @nicolafranchini
+ * Copyright 2013-2015 Nicola Franchini - @nicolafranchini
  *
  */
-
-/* global jQuery */
-
 (function($){
-    "use strict";
-    var ios, autoplay, bgcolor, blocknum, blocktitle, border, core, container, content, dest, extraCss,
-        framewidth, frameheight, gallItems, infinigall, items, keyNavigationDisabled, margine, numeratio,
-        overlayColor, overlay, title, thisgall, thenext, theprev, nextok, prevok, preloader, $preloader, navigation,
-        obj, gallIndex, startouch, vbheader, images, startY, startX, endY, endX, diff, diffX, diffY, threshold;
+
+    var autoplay,ios,ie9, bgcolor, blocknum, blocktitle, border, core, container, content,trigger,dest,
+        evitacontent, evitanext, evitaprev, extraCss, figliall, framewidth, frameheight,
+        infinigall, items, keyNavigationDisabled, margine, numeratio, overlayColor, overlay, top,
+        prima, title, thisgall, thenext, theprev, type,
+        finH, sonH, nextok, prevok,
+        pre_open_callback,post_open_callback,pre_close_callback,post_close_callback,post_resize_callback;
 
     $.fn.extend({
         //plugin name - venobox
         venobox: function(options) {
-            var plugin = this;
-            // default options
+
+            // default option
             var defaults = {
-                arrowsColor : '#B6B6B6',
-                autoplay : false, // same as data-autoplay - thanks @codibit
-                bgcolor: '#fff',
-                border: '0',
-                closeBackground : '#161617',
-                closeColor : "#d2d2d2",
                 framewidth: '',
                 frameheight: '',
-                gallItems: false,
-                infinigall: false,
-                htmlClose : '&times;',
-                htmlNext : '<span>Next</span>',
-                htmlPrev : '<span>Prev</span>',
-                numeratio: false,
-                numerationBackground : '#161617',
-                numerationColor : '#d2d2d2',
-                numerationPosition : 'top', // 'top' || 'bottom'
-                overlayClose: true, // disable overlay click-close - thanx @martybalandis
-                overlayColor : 'rgba(23,23,23,0.85)',
-                spinner : 'double-bounce', // available: 'rotating-plane' | 'double-bounce' | 'wave' | 'wandering-cubes' | 'spinner-pulse' | 'chasing-dots' | 'three-bounce' | 'circle' | 'cube-grid' | 'fading-circle' | 'folding-cube'
-                spinColor : '#d2d2d2',
+                border: '0',
+                bgcolor: '#fff',
                 titleattr: 'title', // specific attribute to get a title (e.g. [data-title]) - thanx @mendezcode
-                titleBackground: '#161617',
-                titleColor: '#d2d2d2',
-                titlePosition : 'top', // 'top' || 'bottom'
-                cb_pre_open: function(){ return true; }, // Callbacks - thanx @garyee
-                cb_post_open: function(){},
-                cb_pre_close: function(){ return true; },
-                cb_post_close: function(){},
-                cb_post_resize: function(){},
-                cb_after_nav: function(){},
-                cb_content_loaded: function(){},
-                cb_init: function(){}
+                numeratio: false,
+                infinigall: false,
+                overlayclose: true, // disable overlay click-close - thanx @martybalandis 
+                pre_open_callback: undefined,
+                post_open_callback: undefined,
+                pre_close_callback: undefined,
+                post_close_callback: undefined,
+                post_resize_callback: undefined
             };
 
             var option = $.extend(defaults, options);
 
-            // callback plugin initialization
-            option.cb_init(plugin);
-
             return this.each(function() {
-
-                obj = $(this);
+                var obj = $(this);
 
                 // Prevent double initialization - thanx @matthistuff
-                if (obj.data('venobox')) {
-                  return true;
+                if(obj.data('venobox')) {
+                    return true;
                 }
 
-                // method to be used outside the plugin
-                plugin.VBclose = function() {
-                    closeVbox();
-                };
                 obj.addClass('vbox-item');
                 obj.data('framewidth', option.framewidth);
                 obj.data('frameheight', option.frameheight);
                 obj.data('border', option.border);
                 obj.data('bgcolor', option.bgcolor);
                 obj.data('numeratio', option.numeratio);
-                obj.data('gallItems', option.gallItems);
                 obj.data('infinigall', option.infinigall);
-                obj.data('overlaycolor', option.overlayColor);
-                obj.data('titleattr', option.titleattr);
-
+                obj.data('overlayclose', option.overlayclose);
+                obj.data('pre_open_callback', option.pre_open_callback);
+                obj.data('post_open_callback', option.post_open_callback);
+                obj.data('pre_close_callback', option.pre_close_callback);
+                obj.data('post_close_callback', option.post_close_callback);
+                obj.data('post_resize_callback', option.post_resize_callback);
                 obj.data('venobox', true);
 
-                obj.on('click', function(e){
+                ios = (navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false);
+                ie9 = ((document.all && !window.atob) ? true : false); // IE 9 or less
 
+                obj.click(function(e){
+                    e.stopPropagation();
                     e.preventDefault();
-                    obj = $(this);
 
-                    // callback plugin initialization
-                    var cb_pre_open = option.cb_pre_open(obj);
-
-                    if (cb_pre_open === false) {
-                      return false;
+                    pre_open_callback = obj.data('pre_open_callback');
+                    if(typeof pre_open_callback  != 'undefined' && $.isFunction(pre_open_callback)){
+                        var rtn=pre_open_callback($(obj));
+                        if(rtn!=undefined && !rtn)
+                            return;
                     }
-
-                    // methods to be used outside the plugin
-                    plugin.VBnext = function() {
-                        navigateGall(thenext);
-                    };
-                    plugin.VBprev = function() {
-                        navigateGall(theprev);
-                    };
-
-                    overlayColor = obj.data('overlay') || obj.data('overlaycolor');
-
+                    obj = $(this);
+                    overlayColor = obj.data('overlay');
                     framewidth = obj.data('framewidth');
                     frameheight = obj.data('frameheight');
                     // set data-autoplay="true" for vimeo and youtube videos - thanx @zehfernandes
-                    autoplay = obj.data('autoplay') || option.autoplay;
+                    autoplay = obj.data('autoplay') || false;
                     border = obj.data('border');
                     bgcolor = obj.data('bgcolor');
                     nextok = false;
                     prevok = false;
                     keyNavigationDisabled = false;
+                    post_open_callback = obj.data('post_open_callback');
+                    pre_close_callback = obj.data('pre_close_callback');
+                    post_close_callback = obj.data('post_close_callback');
+                    post_resize_callback = obj.data('post_resize_callback');
 
-                    // set a different url to be loaded using data-href="" - thanx @pixeline
-                    dest = obj.data('href') || obj.attr('href');
-                    extraCss = obj.data( 'css' ) || '';
-                    title = obj.attr(obj.data('titleattr')) || '';
 
-                    preloader = '<div class="vbox-preloader">';
-
-                    ios = (navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false);
-
+                    dest = obj.attr('href');
+                    extraCss = obj.data( 'css' ) || "";
+                    top = $(window).scrollTop();
+                    top = -top;
 
 
                     $('body').wrapInner('<div class="vwrap"></div>');
 
+                    vwrap = $('.vwrap');
+                    core = '<div class="vbox-overlay ' + extraCss + '" style="background:'+ overlayColor +'"><div class="vbox-preloader">Loading...</div><div class="vbox-container"><div class="vbox-content"></div></div><div class="vbox-title"></div><div class="vbox-num">0/0</div><div class="vbox-close">X</div><div class="vbox-next">next</div><div class="vbox-prev">prev</div></div>';
 
-                    switch (option.spinner) {
-
-                        case 'rotating-plane':
-                            preloader += '<div class="sk-rotating-plane"></div>';
-                            break;
-                        case 'double-bounce':
-                            preloader += '<div class="sk-double-bounce">'+
-                            '<div class="sk-child sk-double-bounce1"></div>'+
-                            '<div class="sk-child sk-double-bounce2"></div>'+
-                            '</div>';
-                            break;
-                        case 'wave':
-                            preloader += '<div class="sk-wave">'+
-                            '<div class="sk-rect sk-rect1"></div>'+
-                            '<div class="sk-rect sk-rect2"></div>'+
-                            '<div class="sk-rect sk-rect3"></div>'+
-                            '<div class="sk-rect sk-rect4"></div>'+
-                            '<div class="sk-rect sk-rect5"></div>'+
-                            '</div>';
-                            break;
-                        case 'wandering-cubes':
-                            preloader += '<div class="sk-wandering-cubes">'+
-                            '<div class="sk-cube sk-cube1"></div>'+
-                            '<div class="sk-cube sk-cube2"></div>'+
-                            '</div>';
-                            break;
-                          case 'spinner-pulse':
-                            preloader += '<div class="sk-spinner sk-spinner-pulse"></div>';
-                            break;
-                        case 'chasing-dots':
-                            preloader += '<div class="sk-chasing-dots">'+
-                            '<div class="sk-child sk-dot1"></div>'+
-                            '<div class="sk-child sk-dot2"></div>'+
-                            '</div>';
-                            break;
-                        case 'three-bounce':
-                            preloader += '<div class="sk-three-bounce">'+
-                            '<div class="sk-child sk-bounce1"></div>'+
-                            '<div class="sk-child sk-bounce2"></div>'+
-                            '<div class="sk-child sk-bounce3"></div>'+
-                            '</div>';
-                            break;
-                        case 'circle':
-                            preloader += '<div class="sk-circle">'+
-                            '<div class="sk-circle1 sk-child"></div>'+
-                            '<div class="sk-circle2 sk-child"></div>'+
-                            '<div class="sk-circle3 sk-child"></div>'+
-                            '<div class="sk-circle4 sk-child"></div>'+
-                            '<div class="sk-circle5 sk-child"></div>'+
-                            '<div class="sk-circle6 sk-child"></div>'+
-                            '<div class="sk-circle7 sk-child"></div>'+
-                            '<div class="sk-circle8 sk-child"></div>'+
-                            '<div class="sk-circle9 sk-child"></div>'+
-                            '<div class="sk-circle10 sk-child"></div>'+
-                            '<div class="sk-circle11 sk-child"></div>'+
-                            '<div class="sk-circle12 sk-child"></div>'+
-                            '</div>';
-                            break;
-                        case 'cube-grid':
-                            preloader += '<div class="sk-cube-grid">'+
-                            '<div class="sk-cube sk-cube1"></div>'+
-                            '<div class="sk-cube sk-cube2"></div>'+
-                            '<div class="sk-cube sk-cube3"></div>'+
-                            '<div class="sk-cube sk-cube4"></div>'+
-                            '<div class="sk-cube sk-cube5"></div>'+
-                            '<div class="sk-cube sk-cube6"></div>'+
-                            '<div class="sk-cube sk-cube7"></div>'+
-                            '<div class="sk-cube sk-cube8"></div>'+
-                            '<div class="sk-cube sk-cube9"></div>'+
-                            '</div>';
-                            break;
-                        case 'fading-circle':
-                            preloader += '<div class="sk-fading-circle">'+
-                            '<div class="sk-circle1 sk-circle"></div>'+
-                            '<div class="sk-circle2 sk-circle"></div>'+
-                            '<div class="sk-circle3 sk-circle"></div>'+
-                            '<div class="sk-circle4 sk-circle"></div>'+
-                            '<div class="sk-circle5 sk-circle"></div>'+
-                            '<div class="sk-circle6 sk-circle"></div>'+
-                            '<div class="sk-circle7 sk-circle"></div>'+
-                            '<div class="sk-circle8 sk-circle"></div>'+
-                            '<div class="sk-circle9 sk-circle"></div>'+
-                            '<div class="sk-circle10 sk-circle"></div>'+
-                            '<div class="sk-circle11 sk-circle"></div>'+
-                            '<div class="sk-circle12 sk-circle"></div>'+
-                            '</div>';
-                            break;
-                        case 'folding-cube':
-                            preloader += '<div class="sk-folding-cube">'+
-                            '<div class="sk-cube1 sk-cube"></div>'+
-                            '<div class="sk-cube2 sk-cube"></div>'+
-                            '<div class="sk-cube4 sk-cube"></div>'+
-                            '<div class="sk-cube3 sk-cube"></div>'+
-                            '</div>';
-                            break;
-                    }
-                    preloader += '</div>';
-
-                    navigation = '<a class="vbox-next">' + option.htmlNext + '</a><a class="vbox-prev">' + option.htmlPrev + '</a>';
-                    vbheader = '<div class="vbox-title"></div><div class="vbox-num">0/0</div><div class="vbox-close">' + option.htmlClose + '</div>';
-
-                    core = '<div class="vbox-overlay ' + extraCss + '" style="background:'+ overlayColor +'">'+
-                    preloader + '<div class="vbox-container"><div class="vbox-content"></div></div>' + vbheader + navigation + '</div>';
-
-                    $('body').append(core).addClass('vbox-open');
-
-                    $('.vbox-preloader div:not(.sk-circle) .sk-child, .vbox-preloader .sk-rotating-plane, .vbox-preloader .sk-rect, .vbox-preloader div:not(.sk-folding-cube) .sk-cube, .vbox-preloader .sk-spinner-pulse').css('background-color', option.spinColor);
+                    $('body').append(core);
 
                     overlay = $('.vbox-overlay');
                     container = $('.vbox-container');
                     content = $('.vbox-content');
                     blocknum = $('.vbox-num');
                     blocktitle = $('.vbox-title');
-                    $preloader = $('.vbox-preloader');
-
-                    overlay.css('min-height', $(window).outerHeight());
-                    $('.veno-frame').css('min-height', $(window).outerHeight() - 80);
-
-                    $preloader.show();
-
-                    blocktitle.css(option.titlePosition, '-1px');
-                    blocktitle.css({
-                      'color' : option.titleColor,
-                      'background-color' : option.titleBackground
-                    });
-
-                    $('.vbox-close').css({
-                      'color' : option.closeColor,
-                      'background-color' : option.closeBackground
-                    });
-
-                    $('.vbox-num').css(option.numerationPosition, '-1px');
-                    $('.vbox-num').css({
-                      'color' : option.numerationColor,
-                      'background-color' : option.numerationBackground
-                    });
-
-                    $('.vbox-next span, .vbox-prev span').css({
-                      'border-top-color' : option.arrowsColor,
-                      'border-right-color' : option.arrowsColor
-                    });
+                    trigger =$(obj);
 
                     content.html('');
                     content.css('opacity', '0');
-                    overlay.css('opacity', '0');
 
                     checknav();
 
-                    // fade in overlay
-                    overlay.animate({opacity:1}, 250, function(){
+                    overlay.css('min-height', $(window).outerHeight());
+                    
 
-                        if (obj.data('vbtype') == 'iframe') {
+                    if (true) {
 
-                          loadIframe();
-                        } else if (obj.data('vbtype') == 'inline') {
-                          loadInline();
-                        } else if (obj.data('vbtype') == 'ajax') {
-                          loadAjax();
-                        } else if (obj.data('vbtype') == 'video') {
-                          loadVid(autoplay);
-                        } else {
-                          content.html('<img src="'+dest+'">');
-                          preloadFirst();
+                        // fade in overlay
+                        overlay.animate({opacity:1}, 250, function(){
+                            overlay.css({
+                                'min-height': $(window).outerHeight(),
+                                height : 'auto'
+                            });
+                            if(obj.data('type') == 'iframe'){
+                                loadIframe();
+                            }else if (obj.data('type') == 'inline'){
+                                loadInline();
+                            }else if (obj.data('type') == 'ajax'){
+                                loadAjax();
+                            }else if (obj.data('type') == 'vimeo'){
+                                loadVimeo(autoplay);
+                            }else if (obj.data('type') == 'youtube'){
+                                loadYoutube(autoplay);
+                            } else {
+                                content.html('<img src="'+dest+'">');
+                                preloadFirst();
+                            }
+                        });
+                    } else {
+                        overlay.on("transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd", function(e){
+
+                            // Check if transition is on the overlay - thanx @kanduvisla
+                            if( e.target != e.currentTarget ) {
+                                return;
+                            }
+
+                            overlay.css({
+                                'min-height': $(window).outerHeight(),
+                                height : 'auto'
+                            });
+                            if(obj.data('type') == 'iframe'){
+                                loadIframe();
+                            }else if (obj.data('type') == 'inline'){
+                                loadInline();
+                            }else if (obj.data('type') == 'ajax'){
+                                loadAjax();
+                            }else if (obj.data('type') == 'vimeo'){
+                                loadVimeo(autoplay);
+                            }else if (obj.data('type') == 'youtube'){
+                                loadYoutube(autoplay);
+                            } else {
+                                content.html('<img src="'+dest+'">');
+                                preloadFirst();
+                            }
+                        });
+                        overlay.css('opacity', '1');
+                    }
+
+                    if (ios) {
+                        vwrap.css({
+                            'position': 'fixed',
+                            'top': top,
+                            'opacity': '0'
+                        }).data('top', top);
+                    } else {
+                        vwrap.css({
+                            'position': 'fixed',
+                            'top': top
+                        }).data('top', top);
+                        $(window).scrollTop(0);
+                    }
+
+                    /* -------- CHECK NEXT / PREV -------- */
+                    function checknav(){
+
+                        thisgall = obj.data('gall');
+                        numeratio = obj.data('numeratio');
+                        infinigall = obj.data('infinigall');
+
+                        items = $('.vbox-item[data-gall="' + thisgall + '"]');
+
+                        if(items.length > 1 && numeratio === true){
+                            blocknum.html(items.index(obj)+1 + ' / ' + items.length);
+                            blocknum.show();
+                        }else{
+                            blocknum.hide();
                         }
-                        option.cb_post_open(obj, gallIndex, thenext, theprev);
-                        // $('.venoframe').css('min-height', $(window).outerHeight() - 80);
 
-                        if (ios) {
-                            $('.vwrap').css({
-                                'position': 'fixed',
-                                'top': top,
-                                'opacity': '0'
-                            }).data('top', top);
-                        } else {
-                            $('.vwrap').css({
-                                'position': 'fixed',
-                                'top': top
-                            }).data('top', top);
-                            $(window).scrollTop(0);
+                        thenext = items.eq( items.index(obj) + 1 );
+                        theprev = items.eq( items.index(obj) - 1 );
+
+                        if(obj.attr(option.titleattr)){
+                            title = obj.attr(option.titleattr);
+                            blocktitle.show();
+                        }else{
+                            title = '';
+                            blocktitle.hide();
                         }
+
+                        if (items.length > 1 && infinigall === true) {
+
+                            nextok = true;
+                            prevok = true;
+
+                            if(thenext.length < 1 ){
+                                thenext = items.eq(0);
+                            }
+                            if(items.index(obj) < 1 ){
+                                theprev = items.eq( items.index(items.length) );
+                            }
+
+                        } else {
+
+                            if (thenext.length > 0) {
+                                $('.vbox-next').css('display', 'block');
+                                nextok = true;
+                            } else {
+                                $('.vbox-next').css('display', 'none');
+                                nextok = false;
+                            }
+                            if (items.index(obj) > 0) {
+                                $('.vbox-prev').css('display', 'block');
+                                prevok = true;
+                            } else {
+                                $('.vbox-prev').css('display', 'none');
+                                prevok = false;
+                            }
+                        }
+                    }
+
+                    /* -------- NAVIGATION CODE -------- */
+                    var gallnav = {
+
+                        prev: function() {
+
+                            if (keyNavigationDisabled) {
+                                return;
+                            } else {
+                                keyNavigationDisabled = true;
+                            }
+
+                            overlayColor = theprev.data('overlay');
+
+                            framewidth = theprev.data('framewidth');
+                            frameheight = theprev.data('frameheight');
+                            border = theprev.data('border');
+                            bgcolor = theprev.data('bgcolor');
+                            dest = theprev.attr('href');
+
+                            autoplay = theprev.data('autoplay');
+
+                            if(theprev.attr(option.titleattr)){
+                                title = theprev.attr(option.titleattr);
+                            }else{
+                                title = '';
+                            }
+
+                            if (overlayColor === undefined ) {
+                                overlayColor = "";
+                            }
+
+                            content.animate({ opacity:0}, 500, function(){
+
+                                overlay.css('background',overlayColor);
+
+                                if (theprev.data('type') == 'iframe') {
+                                    loadIframe();
+                                } else if (theprev.data('type') == 'inline'){
+                                    loadInline();
+                                } else if (theprev.data('type') == 'ajax'){
+                                    loadAjax();
+                                } else if (theprev.data('type') == 'youtube'){
+                                    loadYoutube(autoplay);
+                                } else if (theprev.data('type') == 'vimeo'){
+                                    loadVimeo(autoplay);
+                                }else{
+                                    content.html('<img src="'+dest+'">');
+                                    preloadFirst();
+                                }
+                                obj = theprev;
+                                checknav();
+                                keyNavigationDisabled = false;
+                            });
+
+                        },
+
+                        next: function() {
+
+                            if (keyNavigationDisabled) {
+                                return;
+                            } else {
+                                keyNavigationDisabled = true;
+                            }
+
+                            overlayColor = thenext.data('overlay');
+
+                            framewidth = thenext.data('framewidth');
+                            frameheight = thenext.data('frameheight');
+                            border = thenext.data('border');
+                            bgcolor = thenext.data('bgcolor');
+                            dest = thenext.attr('href');
+                            autoplay = thenext.data('autoplay');
+
+                            if(thenext.attr(option.titleattr)){
+                                title = thenext.attr(option.titleattr);
+                            }else{
+                                title = '';
+                            }
+
+                            if (overlayColor === undefined ) {
+                                overlayColor = "";
+                            }
+
+                            content.animate({ opacity:0}, 500, function(){
+
+                                overlay.css('background',overlayColor);
+
+                                if (thenext.data('type') == 'iframe') {
+                                    loadIframe();
+                                } else if (thenext.data('type') == 'inline'){
+                                    loadInline();
+                                } else if (thenext.data('type') == 'ajax'){
+                                    loadAjax();
+                                } else if (thenext.data('type') == 'youtube'){
+                                    loadYoutube(autoplay);
+                                } else if (thenext.data('type') == 'vimeo'){
+                                    loadVimeo(autoplay);
+                                }else{
+                                    content.html('<img src="'+dest+'">');
+                                    preloadFirst();
+                                }
+                                obj = thenext;
+                                checknav();
+                                keyNavigationDisabled = false;
+                            });
+
+                        }
+
+                    };
+
+                    /* -------- NAVIGATE WITH ARROW KEYS -------- */
+                    $('body').keydown(function(e) {
+
+                        if(e.keyCode == 37 && prevok == true) { // left
+                            gallnav.prev();
+                        }
+
+                        if(e.keyCode == 39 && nextok == true) { // right
+                            gallnav.next();
+                        }
+
                     });
-
-                    /* -------- KEYBOARD ACTIONS -------- */
-                    $('body').keydown(keyboardHandler);
 
                     /* -------- PREVGALL -------- */
-                    $('.vbox-prev').on('click', function(){
-                        navigateGall(theprev);
+                    $('.vbox-prev').click(function(){
+                        gallnav.prev();
                     });
+
                     /* -------- NEXTGALL -------- */
-                    $('.vbox-next').on('click', function(){
-                        navigateGall(thenext);
+                    $('.vbox-next').click(function(){
+                        gallnav.next();
                     });
 
-                    return false;
-
-                }); // click
-
-                /* -------- CHECK NEXT / PREV -------- */
-                function checknav(){
-
-                    thisgall = obj.data('gall');
-                    numeratio = obj.data('numeratio');
-                    gallItems = obj.data('gallItems');
-                    infinigall = obj.data('infinigall');
-
-                    if (gallItems) {
-                        items = gallItems;
-                    } else {
-                        items = $('.vbox-item[data-gall="' + thisgall + '"]');
-                    }
-
-                    thenext = items.eq( items.index(obj) + 1 );
-                    theprev = items.eq( items.index(obj) - 1 );
-
-                    if (!thenext.length && infinigall === true) {
-                      thenext = items.eq(0);
-                    }
-
-                    // update gall numeration
-                    if (items.length > 1) {
-                      gallIndex = items.index(obj)+1;
-                      blocknum.html(gallIndex + ' / ' + items.length);
-                    } else {
-                      gallIndex = 1;
-                    }
-                    if (numeratio === true) {
-                      blocknum.show();
-                    } else {
-                      blocknum.hide();
-                    }
-
-                    // update title
-                    if (title !== '') {
-                      blocktitle.show();
-                    } else {
-                      blocktitle.hide();
-                    }
-
-                    // update navigation arrows
-                    if (!thenext.length && infinigall !== true) {
-                      $('.vbox-next').css('display', 'none');
-                      nextok = false;
-                    } else {
-                      $('.vbox-next').css('display', 'block');
-                      nextok = true;
-                    }
-
-                    if (items.index(obj) > 0 || infinigall === true) {
-                      $('.vbox-prev').css('display', 'block');
-                      prevok = true;
-                    } else {
-                      $('.vbox-prev').css('display', 'none');
-                      prevok = false;
-                    }
-                    // activate swipe
-                    if (prevok === true || nextok === true) {
-                      content.on(TouchMouseEvent.DOWN, onDownEvent);
-                      content.on(TouchMouseEvent.MOVE, onMoveEvent);
-                      content.on(TouchMouseEvent.UP, onUpEvent);
-                    }
-                }
-
-                /* -------- gallery navigation -------- */
-                function navigateGall(destination) {
-
-                    if (destination.length < 1) {
-                      return false;
-                    }
-                    if (keyNavigationDisabled) {
-                      return false;
-                    }
-                    keyNavigationDisabled = true;
-
-                    overlayColor = destination.data('overlay') || destination.data('overlaycolor');
-
-                    framewidth = destination.data('framewidth');
-                    frameheight = destination.data('frameheight');
-                    border = destination.data('border');
-                    bgcolor = destination.data('bgcolor');
-                    dest = destination.data('href') || destination.attr('href');
-
-                    autoplay = destination.data('autoplay');
-
-                    title = destination.attr(destination.data('titleattr')) || '';
-
-                    // swipe out item
-                    if (destination === theprev) {
-                      content.addClass('animated');
-                    }
-                    if (destination === thenext) {
-                      content.addClass('animated');
-                    }
-
-                    $preloader.show();
-
-                    content.animate({
-                      opacity : 0,
-                    }, 500, function(){
-
-                      overlay.css('background',overlayColor);
-
-                      content
-                      .removeClass('animated')
-                      .css({'margin-left': 0,'margin-right': 0});
-
-                      if (destination.data('vbtype') == 'iframe') {
-                        loadIframe();
-                      } else if (destination.data('vbtype') == 'inline') {
-                        loadInline();
-                      } else if (destination.data('vbtype') == 'ajax') {
-                        loadAjax();
-                      } else if (destination.data('vbtype') == 'video') {
-                        loadVid(autoplay);
-                      } else {
-                        content.html('<img src="'+dest+'">');
-                        preloadFirst();
-                      }
-                      obj = destination;
-                      checknav();
-                      keyNavigationDisabled = false;
-                      option.cb_after_nav(obj, gallIndex, thenext, theprev);
-                    });
-                }
-
-                /* -------- KEYBOARD HANDLER -------- */
-                function keyboardHandler(e) {
-                    if (e.keyCode === 27) { // esc
-                      closeVbox();
-                    }
-
-                    if (e.keyCode == 37 && prevok === true) { // left
-                      navigateGall(theprev);
-                    }
-
-                    if (e.keyCode == 39 && nextok === true) { // right
-                      navigateGall(thenext);
-                    }
-                }
-
-                /* -------- CLOSE VBOX -------- */
-                function closeVbox(){
-
-                    var cb_pre_close = option.cb_pre_close(obj, gallIndex, thenext, theprev);
-
-                    if (cb_pre_close === false) {
-                      return false;
-                    }
-
-                    $('body').off('keydown', keyboardHandler).removeClass('vbox-open');
-
-                    obj.focus();
-
-                    overlay.animate({opacity:0}, 500, function(){
-                      overlay.remove();
-                      keyNavigationDisabled = false;
-                      option.cb_post_close();
-                      $('.vwrap').children().unwrap();
-                    });
-                }
-
-                /* -------- CLOSE CLICK -------- */
-                var closeclickclass = '.vbox-overlay';
-                if(!option.overlayClose){
-                    closeclickclass = '.vbox-close'; // close only on X
-                }
-
-                $('body').on('click touchstart', closeclickclass, function(e){
-                    if ($(e.target).is('.vbox-overlay') ||
-						$(e.target).is('.vbox-content') ||
-						$(e.target).is('.vbox-close') ||
-						$(e.target).is('.vbox-preloader') ||
-						$(e.target).is('.vbox-container')
-                    ) {
-                        closeVbox();
-                    }
-                });
-
-                startX = 0;
-                endX = 0;
-
-                diff = 0;
-                threshold = 50;
-                startouch = false;
-
-                function onDownEvent(e){
-                    content.addClass('animated');
-                    startY = endY = e.pageY;
-                    startX = endX = e.pageX;
-                    startouch = true;
-                }
-
-                function onMoveEvent(e){
-                    if (startouch === true) {
-                        endX = e.pageX;
-                        endY = e.pageY;
-
-                        diffX = endX - startX;
-                        diffY = endY - startY;
-
-                        var absdiffX = Math.abs(diffX);
-                        var absdiffY = Math.abs(diffY);
-
-                        if ((absdiffX > absdiffY) && (absdiffX <= 100)) {
-                            e.preventDefault();
-                            content.css('margin-left', diffX);
+                    /* -------- ESCAPE HANDLER -------- */
+                    function escapeHandler(e) {
+                        if(e.keyCode === 27) {
+                            closeVbox();
                         }
                     }
-                }
 
-                function onUpEvent(e){
-                    if (startouch === true) {
-                        startouch = false;
-                        var subject = obj;
-                        var change = false;
-                        diff = endX - startX;
+                    /* -------- CLOSE VBOX -------- */
 
-                        if (diff < 0 && nextok === true) {
-                            subject = thenext;
-                            change = true;
-                        }
-                        if (diff > 0 && prevok === true) {
-                            subject = theprev;
-                            change = true;
+                    function closeVbox(){
+                        if(typeof pre_close_callback  != 'undefined' && $.isFunction(pre_close_callback)){
+                            var rtn=pre_close_callback(trigger,overlay,container,content,blocknum,blocktitle);
+                            if(rtn!=undefined && !rtn){
+                                return;
+                            }
                         }
 
-                        if (Math.abs(diff) >= threshold && change === true) {
-                            navigateGall(subject);
-                        } else {
-                            content.css({'margin-left': 0,'margin-right': 0});
-                        }
-                    }
-                }
 
-                /* == GLOBAL DECLERATIONS == */
-                var TouchMouseEvent = {
-                    DOWN: "touchmousedown",
-                    UP: "touchmouseup",
-                    MOVE: "touchmousemove"
-                };
+                        $('body').off('keydown', escapeHandler);
 
-                /* == EVENT LISTENERS == */
-                var onMouseEvent = function(event) {
-                    var type;
-                    switch (event.type) {
-                        case "mousedown": type = TouchMouseEvent.DOWN; break;
-                        case "mouseup":   type = TouchMouseEvent.UP;   break;
-                        case "mouseout":   type = TouchMouseEvent.UP;   break;
-                        case "mousemove": type = TouchMouseEvent.MOVE; break;
-                        default:
-                            return;
-                    }
-                    var touchMouseEvent = normalizeEvent(type, event, event.pageX, event.pageY);
-                    $(event.target).trigger(touchMouseEvent);
-                };
+                        if (ie9) {
 
-                var onTouchEvent = function(event) {
-                    var type;
-                    switch (event.type) {
-                        case "touchstart": type = TouchMouseEvent.DOWN; break;
-                        case "touchend":   type = TouchMouseEvent.UP;   break;
-                        case "touchmove":  type = TouchMouseEvent.MOVE; break;
-                        default:
-                            return;
-                    }
-
-                    var touch = event.originalEvent.touches[0];
-                    var touchMouseEvent;
-
-                    if (type == TouchMouseEvent.UP) {
-                         touchMouseEvent = normalizeEvent(type, event, null, null);
-                    } else {
-                        touchMouseEvent = normalizeEvent(type, event, touch.pageX, touch.pageY);
-                    }
-                    $(event.target).trigger(touchMouseEvent);
-                };
-
-                /* == NORMALIZE == */
-                var normalizeEvent = function(type, original, x, y) {
-                    return $.Event(type, {
-                        pageX: x,
-                        pageY: y,
-                        originalEvent: original
-                    });
-                };
-
-                /* == LISTEN TO ORIGINAL EVENT == */
-                if ("ontouchstart" in window) {
-                    $(document).on("touchstart", onTouchEvent);
-                    $(document).on("touchmove", onTouchEvent);
-                    $(document).on("touchend", onTouchEvent);
-                } else {
-                    $(document).on("mousedown", onMouseEvent);
-                    $(document).on("mouseup", onMouseEvent);
-                    $(document).on("mouseout", onMouseEvent);
-                    $(document).on("mousemove", onMouseEvent);
-                }
-
-                /* -------- LOAD AJAX -------- */
-                function loadAjax(){
-                  $.ajax({
-                  url: dest,
-                  cache: false
-                  }).done(function( msg ) {
-                      content.html('<div class="vbox-inline">'+ msg +'</div>');
-                      preloadFirst();
-
-                  }).fail(function() {
-                      content.html('<div class="vbox-inline"><p>Error retrieving contents, please retry</div>');
-                      updateoverlay();
-                  });
-                }
-
-                /* -------- LOAD IFRAME -------- */
-                function loadIframe(){
-                    content.html('<iframe class="venoframe" src="'+dest+'"></iframe>');
-                  //  $('.venoframe').load(function(){ // valid only for iFrames in same domain
-                    updateoverlay();
-                  //  });
-                }
-
-                /* -------- LOAD VIDEOs -------- */
-                function loadVid(autoplay){
-
-                    var player;
-                    var videoObj = parseVideo(dest);
-
-                    // set rel=0 to hide related videos at the end of YT + optional autoplay
-                    var stringAutoplay = autoplay ? "?rel=0&autoplay=1" : "?rel=0";
-                    var queryvars = stringAutoplay + getUrlParameter(dest);
-
-                    if (videoObj.type == 'vimeo') {
-                      player = 'https://player.vimeo.com/video/';
-                    } else if (videoObj.type == 'youtube') {
-                      player = 'https://www.youtube.com/embed/';
-                    }
-                    content.html('<iframe class="venoframe vbvid" webkitallowfullscreen mozallowfullscreen allowfullscreen allow="autoplay" frameborder="0" src="'+player+videoObj.id+queryvars+'"></iframe>');
-                    updateoverlay();
-                }
-
-                /**
-                * Parse Youtube or Vimeo videos and get host & ID
-                */
-                function parseVideo (url) {
-                    url.match(/(http:|https:|)\/\/(player.|www.)?(vimeo\.com|youtu(be\.com|\.be|be\.googleapis\.com))\/(video\/|embed\/|watch\?v=|v\/)?([A-Za-z0-9._%-]*)(\&\S+)?/);
-                    var type;
-                    if (RegExp.$3.indexOf('youtu') > -1) {
-                        type = 'youtube';
-                    } else if (RegExp.$3.indexOf('vimeo') > -1) {
-                        type = 'vimeo';
-                    }
-                    return {
-                        type: type,
-                        id: RegExp.$6
-                    };
-                }
-
-                /**
-                * get additional video url parameters
-                */
-                function getUrlParameter(name) {
-                  var result = '';
-                  var sPageURL = decodeURIComponent(name);
-                  var firstsplit = sPageURL.split('?');
-
-                  if (firstsplit[1] !== undefined) {
-                      var sURLVariables = firstsplit[1].split('&');
-                      var sParameterName;
-                      var i;
-                      for (i = 0; i < sURLVariables.length; i++) {
-                          sParameterName = sURLVariables[i].split('=');
-                          result = result + '&'+ sParameterName[0]+'='+ sParameterName[1];
-                      }
-                  }
-                  return encodeURI(result);
-                }
-
-                /* -------- LOAD INLINE -------- */
-                function loadInline(){
-                    content.html('<div class="vbox-inline">'+$(dest).html()+'</div>');
-                    updateoverlay();
-                }
-
-                /* -------- PRELOAD IMAGE -------- */
-                function preloadFirst(){
-                    images = content.find('img');
-
-                    if (images.length) {
-                        images.each(function(){
-                            $(this).one('load', function() {
-                                updateoverlay();
+                            overlay.animate({opacity:0}, 500, function(){
+                                overlay.remove();
+                                $('.vwrap').children().unwrap();
+                                $(window).scrollTop(-top);
+                                keyNavigationDisabled = false;
+                                obj.focus();
                             });
-                            updateoverlay();
-                        });
-                    } else {
-                        updateoverlay();
+
+                        } else {
+
+                            overlay.off("transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd");
+                            overlay.on("transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd", function(e){
+
+                                // Check if transition is on the overlay - thanx @kanduvisla
+                                if( e.target != e.currentTarget ) {
+                                    return;
+                                }
+
+                                overlay.remove();
+                                if (ios) {
+                                    $('.vwrap').on("transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd", function(){
+                                        $('.vwrap').children().unwrap();
+                                        $(window).scrollTop(-top);
+                                    });
+                                    $('.vwrap').css('opacity', '1');
+                                }else{
+                                    $('.vwrap').children().unwrap();
+                                    $(window).scrollTop(-top);
+                                }
+                                keyNavigationDisabled = false;
+                                obj.focus();
+                            });
+                            if(typeof post_close_callback  != 'undefined' && $.isFunction(post_close_callback))
+                                overlay.animate({
+                                    'opacity': '0'
+                                },'slow',post_close_callback(trigger,overlay,container,content,blocknum,blocktitle));
+                            else
+                                overlay.animate({
+                                    'opacity': '0'
+                                },'slow');
+                        }
                     }
-                }
 
-                /* -------- FADE-IN THE NEW CONTENT -------- */
-                function updateoverlay(){
-console.log('update overlay');
-                    blocktitle.html(title);
+                    /* -------- CLOSE CLICK -------- */
+                    var closeclickclass = '.vbox-overlay';
+                    if(!obj.data('overlayclose')){
+                        closeclickclass = '.vbox-close';    // close only on X
+                    }
 
-                    content.find(">:first-child").addClass('figlio').css({
-                        'width': framewidth,
-                        'height': frameheight,
-                        'padding': border,
-                        'background': bgcolor
+                    $(closeclickclass).click(function(e){
+                        evitacontent = '.figlio';
+                        evitaprev = '.vbox-prev';
+                        evitanext = '.vbox-next';
+                        figliall = '.figlio *';
+                        if(!$(e.target).is(evitacontent) && !$(e.target).is(evitanext) && !$(e.target).is(evitaprev)&& !$(e.target).is(figliall)){
+                            closeVbox();
+                        }
                     });
-
-                    $('img.figlio').on('dragstart', function(event) {
-                        event.preventDefault();
-                    });
-
-                    updateOL();
-
-                    if(typeof post_open_callback  != 'undefined' && $.isFunction(post_open_callback)) {
-                        content.animate({
-                            'opacity': '1'
-                        }, 'slow', function () {
-                            post_open_callback(trigger, overlay, container, content, blocknum, blocktitle);
-                            $preloader.hide();
-                        });
-                    } else {
-                        content.animate({
-                            'opacity': '1'
-                        },'slow', function(){
-                            $preloader.hide();
-                        });
-                    }
-
-
-                    option.cb_content_loaded(obj, gallIndex, thenext, theprev);
-                }
-
-                /* -------- CENTER FRAME -------- */
-                function updateOL(){
-
-                    var sonH = content.outerHeight();
-                    var finH = $(window).height();
-
-                    if (sonH + 60 < finH) {
-                        margine = (finH - sonH)/2;
-                    } else {
-                        margine = '30px';
-                    }
-                    content.css('margin-top', margine);
-                    content.css('margin-bottom', margine);
-                    option.cb_post_resize();
-                }
-
-                $(window).resize(function(){
-                    if($('.vbox-content').length){
-                        setTimeout(updateOL(), 800);
-                    }
+                    $('body').keydown(escapeHandler);
+                    return false;
                 });
-            }); // each
-        } // venobox
-    }); // extend
+            });
+        }
+    });
+
+    /* -------- LOAD AJAX -------- */
+    function loadAjax(){
+        console.log('ajax');
+        $.ajax({
+            url: dest,
+            cache: false
+        }).done(function( msg ) {
+            content.html('<div class="vbox-inline">'+ msg +'</div>');
+          var imgs=content.find("img");
+            var len=imgs.length;
+            var count=0;
+            if(len>0)
+                imgs.each(function(i,elem){
+                    $(this).one("load",function(){
+                        count++;
+                        if(count==len)
+                            updateoverlay(true);
+                    }).each(function() {
+                        if(this.complete) $(this).load();
+                    });
+                });
+            else
+                updateoverlay(true);
+
+        }).fail(function() {
+            content.html('<div class="vbox-inline"><p>Error retrieving contents, please retry</div>');
+            updateoverlay(true);
+        })
+    }
+
+    /* -------- LOAD IFRAME -------- */
+    function loadIframe(){
+        content.html('<iframe class="venoframe" src="'+dest+'"></iframe>');
+        //  $('.venoframe').load(function(){ // valid only for iFrames in same domain
+        updateoverlay();
+        //  });
+    }
+
+    /* -------- LOAD VIMEO -------- */
+    function loadVimeo(autoplay){
+        var pezzi = dest.split('/');
+        var videoid = pezzi[pezzi.length-1];
+        var stringAutoplay = autoplay ? "?autoplay=1" : "";
+        content.html('<iframe class="venoframe" webkitallowfullscreen mozallowfullscreen allowfullscreen frameborder="0" src="https://player.vimeo.com/video/'+videoid+stringAutoplay+'"></iframe>');
+        updateoverlay();
+    }
+
+    /* -------- LOAD YOUTUBE -------- */
+    function loadYoutube(autoplay){
+        var pezzi = dest.split('/');
+        var videoid = pezzi[pezzi.length-1];
+        var stringAutoplay = autoplay ? "?autoplay=1" : "";
+        content.html('<iframe class="venoframe" webkitallowfullscreen mozallowfullscreen allowfullscreen src="https://www.youtube.com/embed/'+videoid+stringAutoplay+'"></iframe>');
+        updateoverlay();
+    }
+
+    /* -------- LOAD INLINE -------- */
+    function loadInline(){
+        content.html('<div class="vbox-inline">'+$(dest).html()+'</div>');
+        updateoverlay();
+    }
+
+    /* -------- PRELOAD IMAGE -------- */
+    function preloadFirst(){
+        prima = $('.vbox-content').find('img');
+        prima.one('load', function() {
+            updateoverlay();
+        }).each(function() {
+            if(this.complete) $(this).load();
+        });
+    }
+
+    /* -------- CENTER ON LOAD -------- */
+    function updateoverlay(notopzero){
+
+        notopzero = notopzero || false;
+        if (notopzero != true) {
+            $(window).scrollTop(0);
+        }
+        blocktitle.html(title);
+        var child=content.find(">:first-child");
+        if(frameheight=='' && !child.hasClass('venoframe'))
+            frameheight="auto";
+        child.addClass('figlio').css('width', framewidth).css('height', frameheight).css('padding', border).css('background', bgcolor);
+        sonH = content.outerHeight();
+        finH = $(window).height();
+
+        if(sonH+80 < finH){
+            margine = (finH - sonH)/2;
+            content.css('margin-top', margine);
+            content.css('margin-bottom', margine);
+
+        }else{
+            content.css('margin-top', '40px');
+            content.css('margin-bottom', '40px');
+        }
+
+        if(typeof post_open_callback  != 'undefined' && $.isFunction(post_open_callback))
+            content.animate({
+                'opacity': '1'
+            },'slow',post_open_callback(trigger,overlay,container,content,blocknum,blocktitle));
+        else
+            content.animate({
+                'opacity': '1'
+            },'slow');
+    }
+
+    /* -------- CENTER ON RESIZE -------- */
+    function updateoverlayresize(){
+        if($('.vbox-content').length) {
+            if (typeof post_resize_callback != 'undefined' && $.isFunction(post_resize_callback))
+                post_resize_callback(trigger,overlay,container,content,blocknum,blocktitle);
+            sonH = content.height();
+            finH = $(window).height();
+
+            if (sonH + 80 < finH) {
+                margine = (finH - sonH) / 2;
+                content.css('margin-top', margine);
+                content.css('margin-bottom', margine);
+            } else {
+                content.css('margin-top', '40px');
+                content.css('margin-bottom', '40px');
+            }
+        }
+    }
+
+    $(window).resize(function(){
+        updateoverlayresize();
+    });
+
 })(jQuery);

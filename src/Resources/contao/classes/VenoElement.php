@@ -172,7 +172,7 @@ class VenoElement
         }
         $att   = "";
         if ($this->type != 0) {
-            $att .= "data-vbtype='" . $GLOBALS['TL_CONFIG']['VenoBox']['types'][$outputType] . "' ";
+            $att .= "data-type='" . $GLOBALS['TL_CONFIG']['VenoBox']['types'][$outputType] . "' ";
         }
 
         if ($this->gallery) {
