@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Venobox for Contao
  * Extension for Contao Open Source CMS (contao.org)
@@ -57,5 +57,3 @@ class VenoBox extends ContentElement
     }
 
 }
-
-?>
