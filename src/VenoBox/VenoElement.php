@@ -10,7 +10,7 @@
  * @link    http://www.postyou.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
-namespace Postyou\ContaoVenoboxBundle;
+namespace Postyou\ContaoVenoboxBundle\VenoBox;
 
 use Contao\Controller;
 use Contao\Environment;

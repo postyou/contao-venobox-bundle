@@ -10,15 +10,16 @@
  * @link    http://www.postyou.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
-namespace Postyou\ContaoVenoboxBundle;
+namespace Postyou\ContaoVenoboxBundle\VenoBox;
 
 use Contao\Input;
 use Contao\Environment;
 use Contao\Cache;
 use Contao\Image;
 use Contao\Backend;
+use Contao\Widget;
 
-class VenoBoxWizard extends \Contao\Widget
+class VenoBoxWizard extends Widget
 {
     /**
      * Submit user input

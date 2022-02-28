@@ -10,12 +10,14 @@
  * @link    http://www.postyou.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
-namespace Postyou\ContaoVenoboxBundle;
+namespace Postyou\ContaoVenoboxBundle\Elements;
 
+use Contao\BackendTemplate;
+use Contao\ContentElement;
+use Postyou\ContaoVenoboxBundle\VenoBox\VenoElement;
+use Postyou\ContaoVenoboxBundle\VenoBox\VenoGenerator;
 
-use Contao\Input;
-
-class VenoBox extends \ContentElement
+class VenoBox extends ContentElement
 {
 
     protected $strTemplate = "ce_venobox";
@@ -29,7 +31,7 @@ class VenoBox extends \ContentElement
     {
 
         if (TL_MODE == 'BE') {
-            $objTemplate = new \BackendTemplate('be_wildcard');
+            $objTemplate = new BackendTemplate('be_wildcard');
             $objTemplate->wildcard = '### ' . utf8_strtoupper('VenoBox') . ' ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
