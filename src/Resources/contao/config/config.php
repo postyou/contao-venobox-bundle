@@ -1,8 +1,13 @@
 <?php
 
-$GLOBALS['TL_CTE']['media']['VenoBox'] = 'Postyou\ContaoVenoboxBundle\VenoBox';
+use Postyou\ContaoVenoboxBundle\Elements\VenoBox;
+use Postyou\ContaoVenoboxBundle\VenoBox\ContentVenoLinkImage;
+use Postyou\ContaoVenoboxBundle\VenoBox\VenoBoxWizard;
+use Postyou\ContaoVenoboxBundle\VenoBox\VenoElement;
 
-$GLOBALS['BE_FFL']['venoBoxWizard'] = 'Postyou\ContaoVenoboxBundle\VenoBoxWizard';
+$GLOBALS['TL_CTE']['media']['VenoBox'] = VenoBox::class;
+
+$GLOBALS['BE_FFL']['venoBoxWizard'] = VenoBoxWizard::class;
 
 $GLOBALS['TL_CONFIG']['VenoBox']['types'][0]="image";
 $GLOBALS['TL_CONFIG']['VenoBox']['types'][1]="iframe";
@@ -21,5 +26,5 @@ $GLOBALS['TL_CONFIG']['VenoBoxWizard']['fields']=array(
     "id"=>6
 );
 
-$GLOBALS['TL_HOOKS']['getContentElement'][] = array('Postyou\ContaoVenoboxBundle\VenoElement', 'renderCeText');
-$GLOBALS['TL_CTE']['media']['image'] = 'Postyou\ContaoVenoboxBundle\ContentVenoLinkImage';
+$GLOBALS['TL_HOOKS']['getContentElement'][] = array(VenoElement::class, 'renderCeText');
+$GLOBALS['TL_CTE']['media']['image'] = ContentVenoLinkImage::class;
