@@ -22,7 +22,7 @@ class VenoBox extends ContentElement
     {
         if (TL_MODE === 'BE') {
             $objTemplate = new BackendTemplate('be_wildcard');
-            $objTemplate->wildcard = '### '.utf8_strtoupper('VenoBox').' ###';
+            $objTemplate->wildcard = '### '.mb_strtoupper('VenoBox').' ###';
             $objTemplate->title = $this->headline;
             $objTemplate->id = $this->id;
             $objTemplate->link = $this->name;

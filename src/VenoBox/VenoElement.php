@@ -262,7 +262,11 @@ class VenoElement
         }
         $att = '';
         if (0 !== $this->type) {
-            $att .= "data-vbtype='".$GLOBALS['TL_CONFIG']['VenoBox']['types'][$outputType]."' ";
+            if ($outputType === 5 || $outputType === 4) {
+                $att .= "data-vbtype='video' ";
+            } else {
+                $att .= "data-vbtype='".$GLOBALS['TL_CONFIG']['VenoBox']['types'][$outputType]."' ";
+            }
         }
 
         if ($this->gallery) {

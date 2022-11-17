@@ -40,7 +40,7 @@ $GLOBALS['TL_DCA']['tl_content']['fields']['venoList'] = [
     'sql' => 'blob NULL',
     'load_callback' => [function ($varValue, $dc) {
         $numberOfIdField = $GLOBALS['TL_CONFIG']['VenoBoxWizard']['fields']['id'];
-        $vallArr = unserialize($varValue);
+        $vallArr = unserialize($varValue ?? '');
         $changed = false;
         $uniqArr = [];
 
@@ -52,6 +52,10 @@ $GLOBALS['TL_DCA']['tl_content']['fields']['venoList'] = [
                         $res = $dc->Database->prepare('SELECT count(*) as count FROM tl_content WHERE id!=? AND venoList REGEXP ?')
                             ->execute($dc->id, $veno_id)->fetchAllAssoc();
 
+                        if (1 === count($res[0])) {
+                            $res = $res[0];
+                        }
+
                         if (isset($res['count']) && 0 === $res['count'] && !in_array($veno_id, $uniqArr, true)) {
                             $value[$numberOfIdField] = $veno_id;
                             $uniqArr[] = $veno_id;
@@ -60,6 +64,7 @@ $GLOBALS['TL_DCA']['tl_content']['fields']['venoList'] = [
                     }
                 }
             }
+
             if ($changed) {
                 $dc->Database->prepare('Update tl_content SET venoList=? WHERE id=?')->execute(
                     serialize($vallArr),

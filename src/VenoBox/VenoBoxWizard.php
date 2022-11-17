@@ -13,28 +13,10 @@ use Contao\Widget;
 
 class VenoBoxWizard extends Widget
 {
-    /**
-     * Submit user input.
-     *
-     * @var bool
-     */
     protected $blnSubmitInput = true;
 
-    /**
-     * Template.
-     *
-     * @var string
-     */
     protected $strTemplate = 'be_widget';
 
-    /**
-     * Add specific attributes.
-     *
-     * @param string
-     * @param mixed
-     * @param mixed $strKey
-     * @param mixed $varValue
-     */
     public function __set($strKey, $varValue): void
     {
         switch ($strKey) {
@@ -52,17 +34,11 @@ class VenoBoxWizard extends Widget
         }
     }
 
-    /**
-     * Generate the widget.
-     *
-     * @return string
-     */
-    public function generate()
+    public function generate(): string
     {
         $GLOBALS['TL_JAVASCRIPT']['venoWiz'] = 'bundles/postyoucontaovenobox/js/venoBoxWiz.js';
 
         $fields = $GLOBALS['TL_CONFIG']['VenoBoxWizard']['fields'];
-
         $single = false;
 
         switch ($this->objDca->activeRecord->type) {
@@ -78,6 +54,7 @@ class VenoBoxWizard extends Widget
         }
 
         $arrButtons = ['copy', 'drag', 'up', 'down', 'delete'];
+
         if ($single) {
             $arrButtons = [];
         }
@@ -109,6 +86,7 @@ class VenoBoxWizard extends Widget
 
                     break;
             }
+
             if (Input::post('FORM_SUBMIT') === $this->strTable) {
                 error_log(
                     preg_replace(
@@ -121,6 +99,7 @@ class VenoBoxWizard extends Widget
                         )
                     )
                 );
+
                 $this->redirect(
                     preg_replace(
                         '/&(amp;)?cid=[^&]*/i',
@@ -134,6 +113,7 @@ class VenoBoxWizard extends Widget
                 );
             }
         }
+
         // Make sure there is at least an empty array
         if (!\is_array($this->varValue) || empty($this->varValue)) {
             $initArray = [0];
@@ -152,6 +132,7 @@ class VenoBoxWizard extends Widget
 
         $return = "<div class='ce_venoBoxWizard_wrapper'>";
         $return .= '<ul id="ctrl_'.$this->strId.'" class="ce_venoBoxWizard" data-tabindex="'.$tabindex.'">';
+
         foreach ($this->varValue as $key => $fieldValue) {
             $return .= "<li><div class='ce_venoBox_field_wrapper'><table cellpadding=''>\n";
 
@@ -288,13 +269,17 @@ class VenoBoxWizard extends Widget
         $return .= '<td><label for="'.$this->strId.'['.$key.']['.$i.']" class="copybale" title="'.$GLOBALS['TL_LANG']['tl_content']['venoBoxColumn'.$i][1].'"
 		>'.$GLOBALS['TL_LANG']['tl_content']['venoBoxColumn'.$i][0].'</label></td>';
         $return .= '<td><select name="'.$this->strId.'['.$key.']['.$i.']" data-tabindex="'.$tabindex.$this->getAttributes().'" class="copybale mySelect tl_short">';
+
         foreach ($GLOBALS['TL_CONFIG']['VenoBox']['types'] as $innerKey => $innerFieldValue) {
             $return .= "<option value='".$innerKey."'";
-            if ($innerKey === $value) {
+
+            if ($innerKey === (int) $value) {
                 $return .= ' selected';
             }
+
             $return .= '>'.$innerFieldValue."</option>\n";
         }
+
         $return .= '</select></td></tr>';
 
         return $return;
