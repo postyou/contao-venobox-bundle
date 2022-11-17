@@ -81,6 +81,7 @@ class VenoElement
             $templateObj->attributes = $this->buildAtt();
             $templateObj->venobox = true;
             $templateObj->jsScript = self::getJs();
+            $templateObj->boxClass = $this->getVenoBoxClass();
         }
     }
 
@@ -116,7 +117,7 @@ class VenoElement
         return $strBuffer;
     }
 
-    public function getVenoBoxClass()
+    public function getVenoBoxClass(): string
     {
         return 'venobox_'.$this->boxID;
     }
